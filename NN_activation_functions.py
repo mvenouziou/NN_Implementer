@@ -80,6 +80,7 @@ def functions_dictionary():
                             'tanh': tanh,
                             'leaky relu': leaky_relu,
                             'swish': swish,
+                            'sin': sin,
                             'identity': identity,
                             # 'softmax': softmax,
                             }
@@ -90,6 +91,7 @@ def functions_dictionary():
                    'tanh': d_tanh,
                    'leaky relu': d_leaky_relu,
                    'swish': d_swish,
+                   'sin': d_sin,
                    'identity': d_identity,
                    'LP regularization': d_LP_reg,
                    'LP cost': d_LP_cost,
@@ -129,6 +131,11 @@ def d_L2_reg(x, y, *args):
 
 def log_cost(x, y, *args):
     m = x.shape[1]
+
+    # adjust x to prevent log(0)
+    np.where(x == 0, x + 10e-5, x)
+    np.where(x == 1, x - 10e-5, x)
+
     cost = (-1 / m) * (np.dot(y, np.log(x).T) + np.dot(1 - y, np.log(1 - x).T))
     return cost
 
@@ -216,6 +223,18 @@ def swish(x, *args):
 
 def d_swish(x, *args):
     derivative = sigmoid(x) + x * d_sigmoid(x)
+    return derivative
+
+
+def sin(x, *args):
+    # approx_pi = 3.14159265
+    a = np.sin(x)
+    return a
+
+
+def d_sin(x, *args):
+    # approx_pi = 3.14159265
+    derivative = np.cos(x)
     return derivative
 
 

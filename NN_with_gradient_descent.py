@@ -62,15 +62,15 @@ def NN_creator():
     activation_functions_choices, cost_function_choices, regularization_functions_choices, d_functions_choices \
         = NN.functions_dictionary()
 
-    # Model customization options:
+    # Model Customization:
     # Select training / testing data files
     filetype = input("Is data file h5 type or folder of images? (Enter 'h5' or 'folder'): ")
 
     if filetype == 'folder':
-        pos_data_filename = '.\datasets' + input("Enter folder path for positive data." +
+        pos_data_filename = '.\datasets' + input("Enter folder path for positive examples." +
                                                  "Write in format ' \subfolder\* ' : ")
 
-        neg_data_filename = '.\datasets' + input("Enter folder path for negative data." +
+        neg_data_filename = '.\datasets' + input("Enter folder path for negative examples." +
                                                  "Write in format ' \subfolder\* ' : ")
 
         data_split_prop = float(input("Enter data percentage to use for training. "
@@ -109,15 +109,11 @@ def NN_creator():
           + "-------------------------------------------------------------", sep='')
 
     cost_function = 'init'  # initialize prompt loop
-    while cost_function not in list(cost_function_choices) + [""]:
-        cost_function = input("Enter desired Cost Function or switch to linear regression.\n"
-                              + "(Leave blank for default Neural Network Model): ")
+    while cost_function not in list(cost_function_choices):
+        cost_function = input("Enter desired Cost Function or switch to linear regression: ")
 
     # Update cost function or switch to linear regression
-    if cost_function == "":
-        skip = True  # skips further customization and uses program defaults
-
-    elif cost_function == 'linear regression':  # switches to standard linear regression
+    if cost_function == 'linear regression':  # implement standard linear regression
         layer_sizes = {}  # no hidden layers utilized in linear regression
         activation_functions = {'cost': 'L2 cost',
                                 'output_layer': 'linear regression'}
@@ -164,17 +160,26 @@ def NN_creator():
             layer_num += 1
             size = int(size)
 
-            layer_function = ""
-            while layer_function == "":
+            layer_function = 'init'  # initialize prompt loop
+            while layer_function not in list(activation_functions_choices):
                 layer_function = input("Enter activation function: ")
+                if layer_function not in list(activation_functions_choices):
+                    print("Error: invalid selection.")
+            pass_through = input("Set some neuron activations to identity? Enter number. (Default = 0): ")
+            if pass_through == '':
+                pass_through = 0
+            else: pass_through = int(pass_through)
 
             # update activations dictionary
             activation_functions['layer_' + str(layer_num)] = layer_function
+            activation_functions['pass_though_layers_' + str(layer_num)] = pass_through
             layer_sizes['layer_' + str(layer_num)] = size
 
             # get next layer info and advance layer number
             size = input("\nEnter size of hidden layer " + str(layer_num+1)
                          + " (or press enter if finished with hidden layers): ")
+
+        activation_functions['pass_though_layers_' + str(layer_num+1)] = 0
 
         # User sets learning rate
         rate = input("\nEnter learning rate.\n"
@@ -331,6 +336,10 @@ def forward_propagation(caches, func, param, number_of_layers):
         caches['Z' + str(k)] = np.dot(param['W' + str(k)], caches['A' + str(k - 1)]) + param['b' + str(k)]
         caches['A' + str(k)] = NN.activation_function(
                                     name = func['layer_' + str(k)], derivative= False, x = caches['Z' + str(k)])
+        if func['pass_though_layers_' + str(k)] > 0:
+            num_pass = func['pass_though_layers_' + str(k)]
+            caches['A' + str(k)][0:num_pass + 1] = caches['Z' + str(k)][0:num_pass + 1]
+
     return caches
     # End of forward_propagation() code  ####################################
 
